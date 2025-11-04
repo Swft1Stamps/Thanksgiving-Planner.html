@@ -1,0 +1,641 @@
+import React, { useState } from ‘react’;
+import { Plus, Trash2, DollarSign, Users, ShoppingCart, Calendar, Download } from ‘lucide-react’;
+
+export default function ThanksgivingPlanner() {
+const [activeTab, setActiveTab] = useState(‘budget’);
+const [showPreview, setShowPreview] = useState(false);
+
+// Budget tracking
+const [budgetItems, setBudgetItems] = useState([
+{ id: 1, item: ‘Turkey’, store: ‘Whole Foods’, cost: 0, purchased: false }
+]);
+
+// Guest list
+const [guests, setGuests] = useState([
+{ id: 1, name: ‘’, attending: true, dietary: ‘’, bringing: ‘’ }
+]);
+
+// Shopping list
+const [shoppingItems, setShoppingItems] = useState([
+{ id: 1, item: ‘’, quantity: ‘’, store: ‘’, checked: false }
+]);
+
+// Prep timeline
+const [timeline, setTimeline] = useState([
+{ id: 1, day: ‘1 Week Before’, task: ‘Finalize guest count’, done: false },
+{ id: 2, day: ‘3 Days Before’, task: ‘Thaw turkey in fridge’, done: false },
+{ id: 3, day: ‘2 Days Before’, task: ‘Prep ingredients’, done: false },
+{ id: 4, day: ‘Thanksgiving Day’, task: ‘Start cooking turkey’, done: false }
+]);
+
+// Budget calculations
+const totalBudget = budgetItems.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+const totalGuests = guests.filter(g => g.attending).length;
+const costPerPerson = totalGuests > 0 ? totalBudget / totalGuests : 0;
+
+// Add functions
+const addBudgetItem = () => {
+setBudgetItems([…budgetItems, {
+id: Date.now(),
+item: ‘’,
+store: ‘’,
+cost: 0,
+purchased: false
+}]);
+};
+
+const addGuest = () => {
+setGuests([…guests, {
+id: Date.now(),
+name: ‘’,
+attending: true,
+dietary: ‘’,
+bringing: ‘’
+}]);
+};
+
+const addShoppingItem = () => {
+setShoppingItems([…shoppingItems, {
+id: Date.now(),
+item: ‘’,
+quantity: ‘’,
+store: ‘’,
+checked: false
+}]);
+};
+
+const addTimelineItem = () => {
+setTimeline([…timeline, {
+id: Date.now(),
+day: ‘’,
+task: ‘’,
+done: false
+}]);
+};
+
+// Update functions
+const updateBudgetItem = (id, field, value) => {
+setBudgetItems(budgetItems.map(item =>
+item.id === id ? { …item, [field]: value } : item
+));
+};
+
+const updateGuest = (id, field, value) => {
+setGuests(guests.map(guest =>
+guest.id === id ? { …guest, [field]: value } : guest
+));
+};
+
+const updateShoppingItem = (id, field, value) => {
+setShoppingItems(shoppingItems.map(item =>
+item.id === id ? { …item, [field]: value } : item
+));
+};
+
+const updateTimeline = (id, field, value) => {
+setTimeline(timeline.map(item =>
+item.id === id ? { …item, [field]: value } : item
+));
+};
+
+// Delete functions
+const deleteBudgetItem = (id) => {
+setBudgetItems(budgetItems.filter(item => item.id !== id));
+};
+
+const deleteGuest = (id) => {
+setGuests(guests.filter(guest => guest.id !== id));
+};
+
+const deleteShoppingItem = (id) => {
+setShoppingItems(shoppingItems.filter(item => item.id !== id));
+};
+
+const deleteTimelineItem = (id) => {
+setTimeline(timeline.filter(item => item.id !== id));
+};
+
+// Download function
+const downloadList = () => {
+let content = ’🦃 THANKSGIVING PLANNER - ’ + new Date().toLocaleDateString() + ‘\n\n’;
+
+```
+content += '═══════════════════════════════════\n';
+content += '💰 BUDGET TRACKER\n';
+content += '═══════════════════════════════════\n';
+budgetItems.forEach(item => {
+  content += `${item.purchased ? '✓' : '☐'} ${item.item || 'Unnamed Item'} - ${item.store || 'Store TBD'} - $${item.cost || '0.00'}\n`;
+});
+content += `\nTotal Budget: $${totalBudget.toFixed(2)}\n`;
+content += `Total Guests: ${totalGuests}\n`;
+content += `Cost Per Person: $${costPerPerson.toFixed(2)}\n\n`;
+
+content += '═══════════════════════════════════\n';
+content += '👥 GUEST LIST\n';
+content += '═══════════════════════════════════\n';
+guests.forEach(guest => {
+  if (guest.attending) {
+    content += `✓ ${guest.name || 'Guest'}\n`;
+    if (guest.dietary) content += `  Dietary: ${guest.dietary}\n`;
+    if (guest.bringing) content += `  Bringing: ${guest.bringing}\n`;
+  }
+});
+content += '\n';
+
+content += '═══════════════════════════════════\n';
+content += '🛒 SHOPPING LIST\n';
+content += '═══════════════════════════════════\n';
+shoppingItems.forEach(item => {
+  content += `${item.checked ? '✓' : '☐'} ${item.item || 'Item'} - ${item.quantity || ''} - ${item.store || ''}\n`;
+});
+content += '\n';
+
+content += '═══════════════════════════════════\n';
+content += '📅 PREP TIMELINE\n';
+content += '═══════════════════════════════════\n';
+timeline.forEach(item => {
+  content += `${item.done ? '✓' : '☐'} ${item.day || 'TBD'}: ${item.task || 'Task'}\n`;
+});
+
+const blob = new Blob([content], { type: 'text/plain' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'Thanksgiving-Planner-' + new Date().toISOString().split('T')[0] + '.txt';
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+setShowPreview(false);
+```
+
+};
+
+const getPreviewContent = () => {
+let content = [];
+
+```
+content.push({ section: '💰 BUDGET TRACKER', items: [] });
+budgetItems.forEach(item => {
+  content[0].items.push({
+    checked: item.purchased,
+    text: `${item.item || 'Unnamed Item'} - ${item.store || 'Store TBD'} - $${item.cost || '0.00'}`
+  });
+});
+content[0].items.push({ text: `Total Budget: $${totalBudget.toFixed(2)}`, bold: true });
+content[0].items.push({ text: `Total Guests: ${totalGuests}`, bold: true });
+content[0].items.push({ text: `Cost Per Person: $${costPerPerson.toFixed(2)}`, bold: true });
+
+content.push({ section: '👥 GUEST LIST', items: [] });
+guests.forEach(guest => {
+  if (guest.attending) {
+    let guestText = guest.name || 'Guest';
+    if (guest.dietary) guestText += ` (${guest.dietary})`;
+    if (guest.bringing) guestText += ` - Bringing: ${guest.bringing}`;
+    content[1].items.push({ checked: true, text: guestText });
+  }
+});
+
+content.push({ section: '🛒 SHOPPING LIST', items: [] });
+shoppingItems.forEach(item => {
+  content[2].items.push({
+    checked: item.checked,
+    text: `${item.item || 'Item'} - ${item.quantity || ''} ${item.store ? '- ' + item.store : ''}`
+  });
+});
+
+content.push({ section: '📅 PREP TIMELINE', items: [] });
+timeline.forEach(item => {
+  content[3].items.push({
+    checked: item.done,
+    text: `${item.day || 'TBD'}: ${item.task || 'Task'}`
+  });
+});
+
+return content;
+```
+
+};
+
+const tabs = [
+{ id: ‘budget’, label: ‘Budget Tracker’, icon: DollarSign },
+{ id: ‘guests’, label: ‘Guest List’, icon: Users },
+{ id: ‘shopping’, label: ‘Shopping List’, icon: ShoppingCart },
+{ id: ‘timeline’, label: ‘Prep Timeline’, icon: Calendar }
+];
+
+return (
+<div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4">
+<div className="max-w-6xl mx-auto">
+{/* Header */}
+<div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+<h1 className="text-3xl font-bold text-orange-800 mb-2">🦃 Thanksgiving Host Planner</h1>
+<p className="text-gray-600">Complete budget tracker, guest list, shopping list & timeline</p>
+
+```
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <div className="bg-orange-100 p-4 rounded-lg">
+          <div className="text-sm text-orange-700 font-semibold">Total Budget</div>
+          <div className="text-2xl font-bold text-orange-900">${totalBudget.toFixed(2)}</div>
+        </div>
+        <div className="bg-amber-100 p-4 rounded-lg">
+          <div className="text-sm text-amber-700 font-semibold">Total Guests</div>
+          <div className="text-2xl font-bold text-amber-900">{totalGuests}</div>
+        </div>
+        <div className="bg-yellow-100 p-4 rounded-lg">
+          <div className="text-sm text-yellow-700 font-semibold">Cost Per Person</div>
+          <div className="text-2xl font-bold text-yellow-900">${costPerPerson.toFixed(2)}</div>
+        </div>
+      </div>
+      
+      {/* Download Button */}
+      <div className="mt-6 flex justify-center">
+        <button
+          onClick={() => setShowPreview(true)}
+          className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-md text-lg font-semibold"
+        >
+          <Download size={24} />
+          Preview & Download List
+        </button>
+      </div>
+    </div>
+
+    {/* Tabs */}
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="flex border-b overflow-x-auto">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <tab.icon size={20} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-6">
+        {/* Budget Tracker Tab */}
+        {activeTab === 'budget' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Budget Tracker</h2>
+              <button
+                onClick={addBudgetItem}
+                className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                <Plus size={20} />
+                Add Item
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-100 border-b">
+                    <th className="text-left p-3 font-semibold text-gray-700 w-1/3">Item</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 w-1/4">Store</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 w-1/6">Cost</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 w-24">Purchased</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 w-20">Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {budgetItems.map(item => (
+                    <tr key={item.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={item.item}
+                          onChange={(e) => updateBudgetItem(item.id, 'item', e.target.value)}
+                          placeholder="Turkey, Potatoes, etc."
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={item.store}
+                          onChange={(e) => updateBudgetItem(item.id, 'store', e.target.value)}
+                          placeholder="Whole Foods, Costco"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="number"
+                          value={item.cost}
+                          onChange={(e) => updateBudgetItem(item.id, 'cost', e.target.value)}
+                          placeholder="0.00"
+                          step="0.01"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={item.purchased}
+                          onChange={(e) => updateBudgetItem(item.id, 'purchased', e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => deleteBudgetItem(item.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Guest List Tab */}
+        {activeTab === 'guests' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Guest List</h2>
+              <button
+                onClick={addGuest}
+                className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                <Plus size={20} />
+                Add Guest
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-100 border-b">
+                    <th className="text-left p-3 font-semibold text-gray-700">Name</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Attending</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Dietary Restrictions</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Bringing</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {guests.map(guest => (
+                    <tr key={guest.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={guest.name}
+                          onChange={(e) => updateGuest(guest.id, 'name', e.target.value)}
+                          placeholder="Guest name"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={guest.attending}
+                          onChange={(e) => updateGuest(guest.id, 'attending', e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={guest.dietary}
+                          onChange={(e) => updateGuest(guest.id, 'dietary', e.target.value)}
+                          placeholder="Vegetarian, etc."
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={guest.bringing}
+                          onChange={(e) => updateGuest(guest.id, 'bringing', e.target.value)}
+                          placeholder="Dish/drink"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => deleteGuest(guest.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Shopping List Tab */}
+        {activeTab === 'shopping' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Shopping List</h2>
+              <button
+                onClick={addShoppingItem}
+                className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                <Plus size={20} />
+                Add Item
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-100 border-b">
+                    <th className="text-left p-3 font-semibold text-gray-700">Done</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Item</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Quantity</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Store</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shoppingItems.map(item => (
+                    <tr key={item.id} className={`border-b hover:bg-gray-50 ${item.checked ? 'opacity-50' : ''}`}>
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={(e) => updateShoppingItem(item.id, 'checked', e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={item.item}
+                          onChange={(e) => updateShoppingItem(item.id, 'item', e.target.value)}
+                          placeholder="Item name"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={item.quantity}
+                          onChange={(e) => updateShoppingItem(item.id, 'quantity', e.target.value)}
+                          placeholder="2 lbs"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={item.store}
+                          onChange={(e) => updateShoppingItem(item.id, 'store', e.target.value)}
+                          placeholder="Grocery store"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => deleteShoppingItem(item.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Timeline Tab */}
+        {activeTab === 'timeline' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Prep Timeline</h2>
+              <button
+                onClick={addTimelineItem}
+                className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                <Plus size={20} />
+                Add Task
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {timeline.map(item => (
+                <div key={item.id} className={`flex items-start gap-4 p-4 border rounded-lg ${item.done ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
+                  <input
+                    type="checkbox"
+                    checked={item.done}
+                    onChange={(e) => updateTimeline(item.id, 'done', e.target.checked)}
+                    className="w-5 h-5 mt-1"
+                  />
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={item.day}
+                      onChange={(e) => updateTimeline(item.id, 'day', e.target.value)}
+                      placeholder="When (e.g., 2 days before)"
+                      className="px-3 py-2 border rounded"
+                    />
+                    <input
+                      type="text"
+                      value={item.task}
+                      onChange={(e) => updateTimeline(item.id, 'task', e.target.value)}
+                      placeholder="Task description"
+                      className="px-3 py-2 border rounded"
+                    />
+                  </div>
+                  <button
+                    onClick={() => deleteTimelineItem(item.id)}
+                    className="text-red-500 hover:text-red-700 mt-1"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Instructions Footer */}
+    <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+      <h3 className="font-bold text-gray-800 mb-2">📝 How to Use This Planner:</h3>
+      <ul className="text-sm text-gray-600 space-y-1">
+        <li>• Add all your expenses in the Budget Tracker to monitor total costs</li>
+        <li>• Track your guest list with dietary needs and what each person is bringing</li>
+        <li>• Create your shopping list organized by store for efficient trips</li>
+        <li>• Follow the prep timeline to stay organized leading up to Thanksgiving</li>
+        <li>• Check off tasks as you complete them to track your progress</li>
+      </ul>
+    </div>
+
+    {/* Preview Modal */}
+    {showPreview && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-orange-600 text-white p-6">
+            <h2 className="text-2xl font-bold">🦃 Your Thanksgiving Planner</h2>
+            <p className="text-orange-100 mt-1">{new Date().toLocaleDateString()}</p>
+          </div>
+          
+          <div className="overflow-y-auto p-6 flex-1">
+            {getPreviewContent().map((section, idx) => (
+              <div key={idx} className="mb-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-2 border-orange-300 pb-2">
+                  {section.section}
+                </h3>
+                <div className="space-y-2">
+                  {section.items.map((item, itemIdx) => (
+                    <div key={itemIdx} className={`flex items-start gap-2 ${item.bold ? 'font-bold text-orange-800 mt-2' : ''}`}>
+                      {item.checked !== undefined && (
+                        <span className="text-lg">{item.checked ? '✓' : '☐'}</span>
+                      )}
+                      <span className={item.checked && item.checked !== undefined ? 'line-through opacity-60' : ''}>
+                        {item.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="bg-gray-50 p-4 flex gap-3 justify-end border-t">
+            <button
+              onClick={() => setShowPreview(false)}
+              className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-semibold"
+            >
+              Close
+            </button>
+            <button
+              onClick={downloadList}
+              className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+            >
+              <Download size={20} />
+              Download
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+```
+
+);
+}
